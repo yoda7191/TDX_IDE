@@ -52,6 +52,14 @@ def onWebSocketReceiveText(webServerDAT, client, data):
             handle_fetch_dat(req, response)
         elif action == 'cook_op':
             handle_cook_op(req, response)
+        elif action == 'set_op_param':
+            handle_set_op_param(req, response)
+        elif action == 'pulse_op_param':
+            handle_pulse_op_param(req, response)
+        elif action == 'batch_fetch_dats':
+            handle_batch_fetch_dats(req, response)
+        elif action == 'apply_param_snapshot':
+            handle_apply_param_snapshot(req, response)
         else:
             response['success'] = False
             response['error'] = f"Unknown action '{action}'"
@@ -74,7 +82,7 @@ def onWebSocketReceiveText(webServerDAT, client, data):
 
 def handle_ping(response):
     response.update({
-        'version': '0.4.0',
+        'version': '0.5.0',
         'tdVersion': app.version,
         'tdBuild': app.build,
         'os': app.osName,
@@ -258,7 +266,12 @@ def handle_get_op_params(req, response):
         except Exception:
             val = str(p.val)
 
-        params_list.append({
+        norm_min = getattr(p, 'normMin', None)
+        norm_max = getattr(p, 'normMax', None)
+        abs_min = getattr(p, 'min', None)
+        abs_max = getattr(p, 'max', None)
+
+        param_dict = {
             'name': p.name,
             'label': p.label,
             'page': p.page.name if hasattr(p, 'page') and p.page else 'Default',
@@ -268,7 +281,17 @@ def handle_get_op_params(req, response):
             'readOnly': getattr(p, 'readOnly', False),
             'menuNames': menu_names,
             'menuLabels': menu_labels
-        })
+        }
+        if norm_min is not None and isinstance(norm_min, (int, float)):
+            param_dict['normMin'] = norm_min
+        if norm_max is not None and isinstance(norm_max, (int, float)):
+            param_dict['normMax'] = norm_max
+        if abs_min is not None and isinstance(abs_min, (int, float)):
+            param_dict['min'] = abs_min
+        if abs_max is not None and isinstance(abs_max, (int, float)):
+            param_dict['max'] = abs_max
+
+        params_list.append(param_dict)
 
     custom_methods = []
     custom_members = []
@@ -446,3 +469,132 @@ def handle_cook_op(req, response):
 
     target.cook(force=True)
     response['path'] = target.path
+
+
+def handle_set_op_param(req, response):
+    target_path = req.get('path', '')
+    param_name = req.get('param', '')
+    val = req.get('val')
+    target = op(target_path)
+    if not target:
+        response['success'] = False
+        response['error'] = f"Operator not found: '{target_path}'"
+        return
+    if not hasattr(target, 'par') or not hasattr(target.par, param_name):
+        response['success'] = False
+        response['error'] = f"Parameter '{param_name}' not found on '{target_path}'"
+        return
+    p = getattr(target.par, param_name)
+    try:
+        p.val = val
+        response['path'] = target.path
+        response['param'] = param_name
+        response['val'] = p.eval() if hasattr(p, 'eval') else p.val
+    except Exception as e:
+        response['success'] = False
+        response['error'] = str(e)
+
+
+def handle_pulse_op_param(req, response):
+    target_path = req.get('path', '')
+    param_name = req.get('param', '')
+    target = op(target_path)
+    if not target:
+        response['success'] = False
+        response['error'] = f"Operator not found: '{target_path}'"
+        return
+    if not hasattr(target, 'par') or not hasattr(target.par, param_name):
+        response['success'] = False
+        response['error'] = f"Parameter '{param_name}' not found on '{target_path}'"
+        return
+    p = getattr(target.par, param_name)
+    if hasattr(p, 'pulse'):
+        try:
+            p.pulse()
+            response['path'] = target.path
+            response['param'] = param_name
+        except Exception as e:
+            response['success'] = False
+            response['error'] = str(e)
+    else:
+        response['success'] = False
+        response['error'] = f"Parameter '{param_name}' is not pulseable"
+
+
+def handle_batch_fetch_dats(req, response):
+    root_path = req.get('rootPath', '/')
+    root_op = op(root_path)
+    if not root_op:
+        response['success'] = False
+        response['error'] = f"Root operator not found: '{root_path}'"
+        return
+
+    items = []
+    candidates = []
+    try:
+        if hasattr(root_op, 'findChildren'):
+            td_dat_cls = globals().get('DAT')
+            if td_dat_cls:
+                candidates = root_op.findChildren(type=td_dat_cls)
+            else:
+                candidates = [c for c in root_op.findChildren() if getattr(c, 'isDAT', False)]
+        else:
+            def collect(current):
+                for c in getattr(current, 'children', []):
+                    if getattr(c, 'isDAT', False):
+                        candidates.append(c)
+                    if getattr(c, 'isCOMP', False):
+                        collect(c)
+            collect(root_op)
+    except Exception:
+        def collect(current):
+            for c in getattr(current, 'children', []):
+                if getattr(c, 'isDAT', False):
+                    candidates.append(c)
+                if getattr(c, 'isCOMP', False):
+                    collect(c)
+        collect(root_op)
+
+    if getattr(root_op, 'isDAT', False) and root_op not in candidates:
+        candidates.append(root_op)
+
+    for d in candidates:
+        if getattr(d, 'isDAT', False) and hasattr(d, 'text'):
+            items.append({
+                'path': d.path,
+                'name': d.name,
+                'type': getattr(d, 'type', 'text'),
+                'content': d.text,
+                'isTable': getattr(d, 'isTable', False)
+            })
+
+    response['rootPath'] = root_op.path
+    response['items'] = items
+
+
+def handle_apply_param_snapshot(req, response):
+    target_path = req.get('path', '')
+    snapshot = req.get('snapshot', {})
+    target = op(target_path)
+    if not target:
+        response['success'] = False
+        response['error'] = f"Operator not found: '{target_path}'"
+        return
+
+    applied_count = 0
+    errors = []
+    for param_name, val in snapshot.items():
+        if hasattr(target, 'par') and hasattr(target.par, param_name):
+            p = getattr(target.par, param_name)
+            if not getattr(p, 'readOnly', False):
+                try:
+                    p.val = val
+                    applied_count += 1
+                except Exception as e:
+                    errors.append(f"{param_name}: {str(e)}")
+
+    response['path'] = target.path
+    response['appliedCount'] = applied_count
+    if errors:
+        response['errors'] = errors
+

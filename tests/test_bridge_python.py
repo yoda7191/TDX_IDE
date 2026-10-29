@@ -16,7 +16,6 @@ sys.path.insert(0, workspace_root)
 class MockParam:
     def __init__(self, name, val, label=None, page='Default', style='Float', is_custom=False):
         self.name = name
-        self.val = val
         self._val = val
         self.label = label or name.capitalize()
         self.page = type('Page', (), {'name': page})()
@@ -26,6 +25,14 @@ class MockParam:
         self.menuNames = []
         self.menuLabels = []
         self.pulsed = False
+
+    @property
+    def val(self):
+        return self._val
+
+    @val.setter
+    def val(self, v):
+        self._val = v
 
     def eval(self):
         return self._val
@@ -209,7 +216,7 @@ class TestBridge(unittest.TestCase):
     def test_ping(self):
         res = self.send_request({'id': 'req-1', 'action': 'ping'})
         self.assertTrue(res['success'])
-        self.assertEqual(res['version'], '0.4.0')
+        self.assertEqual(res['version'], '0.5.0')
         self.assertEqual(res['tdVersion'], '2023.11880')
         self.assertEqual(res['tdBuild'], '11880')
         self.assertEqual(res['projectName'], 'TestShow.toe')
@@ -347,6 +354,58 @@ class TestBridge(unittest.TestCase):
         })
         self.assertTrue(res['success'])
         self.assertTrue(self.td.glsl1.cooked)
+
+    def test_set_op_param(self):
+        self.td.glsl1.add_param('brightness', 0.5)
+        res = self.send_request({
+            'id': 'req-13',
+            'action': 'set_op_param',
+            'path': '/project1/glsl1',
+            'param': 'brightness',
+            'val': 1.25
+        })
+        self.assertTrue(res['success'])
+        self.assertEqual(self.td.glsl1.par.brightness.eval(), 1.25)
+
+    def test_pulse_op_param(self):
+        self.td.glsl1.add_param('reset', 0)
+        self.td.glsl1.par.reset.pulsed = False
+        res = self.send_request({
+            'id': 'req-14',
+            'action': 'pulse_op_param',
+            'path': '/project1/glsl1',
+            'param': 'reset'
+        })
+        self.assertTrue(res['success'])
+        self.assertTrue(self.td.glsl1.par.reset.pulsed)
+
+    def test_batch_fetch_dats(self):
+        res = self.send_request({
+            'id': 'req-15',
+            'action': 'batch_fetch_dats',
+            'rootPath': '/project1'
+        })
+        self.assertTrue(res['success'])
+        paths = [item['path'] for item in res['items']]
+        self.assertIn('/project1/script1', paths)
+        self.assertIn('/project1/glsl1_pixel', paths)
+
+    def test_apply_param_snapshot(self):
+        self.td.glsl1.add_param('contrast', 1.0)
+        self.td.glsl1.add_param('gamma', 1.0)
+        res = self.send_request({
+            'id': 'req-16',
+            'action': 'apply_param_snapshot',
+            'path': '/project1/glsl1',
+            'snapshot': {
+                'contrast': 2.0,
+                'gamma': 1.5
+            }
+        })
+        self.assertTrue(res['success'])
+        self.assertEqual(res['appliedCount'], 2)
+        self.assertEqual(self.td.glsl1.par.contrast.eval(), 2.0)
+        self.assertEqual(self.td.glsl1.par.gamma.eval(), 1.5)
 
     def test_installer_in_simulated_touchdesigner(self):
         from td_component import install_bridge

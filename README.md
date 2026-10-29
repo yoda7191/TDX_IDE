@@ -16,6 +16,9 @@ Instead of writing code inside small Text DAT windows in TouchDesigner, you can 
 - **Two-Way Sync**: Edit a script in VS Code, hit Save, and the changes update inside your TouchDesigner DAT automatically.
 - **TouchDesigner Textport in VS Code**: All `print()` outputs, status messages, and Python error messages stream directly into an output window in VS Code.
 - **Interactive Python Console**: Open an interactive TouchDesigner terminal in VS Code with a single click to test code live with command history.
+- **Visual Parameter Inspector**: Tweak real-time TouchDesigner operator parameters right from the VS Code sidebar with live sliders, toggle switches, pulse buttons, and dropdown menus.
+- **Batch DAT Externalizer**: Extract all scripts, callbacks, and shaders inside any component into organized workspace folders with one click, keeping Git version control simple.
+- **Parameter Presets & Snapshots**: Save and restore complete operator parameter states to JSON snapshot files.
 - **Real-Time GLSL Shader Reloading**: When editing GLSL shaders, saving the file automatically pulses dependent GLSL TOPs and MATs in TouchDesigner to recompile without manual clicking.
 - **Shader Compile Error Highlighting**: If a shader fails to compile, TouchDesigner's exact error message appears as red underline markers directly on the affected lines in VS Code.
 - **Ready-to-Use Code Templates**: Type quick abbreviations like `td-exec`, `td-chopexec`, or `td-raymarch` to instantly insert correctly structured callback scripts and shader presets.
@@ -28,12 +31,12 @@ You do not need to download or compile any source code. You only need the single
 
 ### Step 1: Download and Install the Extension
 
-1. Go to the [Releases page on GitHub](https://github.com/yoda7191/Touchdesigner_IDE/releases/latest) and download the latest `touchdesigner-ide-0.4.0.vsix` file.
+1. Go to the [Releases page on GitHub](https://github.com/yoda7191/Touchdesigner_IDE/releases/latest) and download the latest `touchdesigner-ide-0.5.0.vsix` file.
 2. Open **Visual Studio Code**.
 3. Open the Extensions panel by clicking the Extensions icon on the left sidebar (or press `Cmd + Shift + X` on Mac / `Ctrl + Shift + X` on Windows).
 4. Click the three dots menu (`...`) in the top right corner of the Extensions panel.
 5. Select **Install from VSIX...**
-6. Choose the downloaded `touchdesigner-ide-0.4.0.vsix` file.
+6. Choose the downloaded `touchdesigner-ide-0.5.0.vsix` file.
 
 The extension will install immediately with all features ready to use.
 
@@ -114,6 +117,21 @@ Click the TouchDesigner icon on the left Activity Bar to open the Operator Tree.
 - **In-Line Compiler Error Squigglies**: If your shader code has a syntax error or compilation problem, VS Code places a red wavy underline on the exact line that caused the error. Hovering over the underline shows the TouchDesigner error message.
 - **Automatic Offset Handling**: The error reporter automatically accounts for comment headers so line numbers match up accurately.
 
+### Visual Parameter Inspector
+
+- Click any operator in the Operator Tree sidebar (or right-click and select **Inspect Parameters**).
+- The Parameter Inspector panel renders all pages and parameters for that operator:
+  - **Sliders & Numeric Inputs**: Drag float/int sliders or type exact values to see changes live in TouchDesigner.
+  - **Toggles**: Switch boolean settings on and off.
+  - **Pulse Buttons**: Trigger actions like `reset`, `reload`, or custom pulses.
+  - **Dropdown Menus**: Select menu parameters like blending modes, shapes, and formats.
+  - **Instant Filter**: Search parameters by name or label.
+
+### Batch DAT Externalizer & Presets
+
+- **Externalize Component DATs**: Right-click any COMP in the Operator Tree and choose **Externalize DATs to Workspace**. The extension extracts all internal Text DATs, Table DATs, and GLSL shaders into a clean folder structure and activates two-way live auto-sync.
+- **Save & Load Parameter Snapshots**: Capture an operator's full parameter state to a `.json` snapshot in `.td_presets/` and restore it at any time.
+
 ---
 
 ## Keyboard Shortcuts
@@ -176,12 +194,12 @@ If you want to contribute to the extension or modify its code yourself, you can 
    npm run package
    ```
 
-   This compiles the extension and generates `touchdesigner-ide-0.4.0.vsix`.
+   This compiles the extension and generates `touchdesigner-ide-0.5.0.vsix`.
 5. **Install it into VS Code**:
    - Install through the VS Code interface using **Install from VSIX...**, or run:
 
    ```bash
-   code --install-extension touchdesigner-ide-0.4.0.vsix --force
+   code --install-extension touchdesigner-ide-0.5.0.vsix --force
    ```
 
 ---

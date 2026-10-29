@@ -13,6 +13,11 @@ import {
   SyncDatResponse,
   FetchDatResponse,
   CookOpResponse,
+  SetOpParamResponse,
+  PulseOpParamResponse,
+  BatchFetchDatsResponse,
+  BatchDatItem,
+  ApplyParamSnapshotResponse,
   TextportEvent,
   OpNode,
   OpParamInfo,
@@ -358,6 +363,44 @@ export class TDClient extends EventEmitter {
       force,
     });
     return res.success;
+  }
+
+  public async setOpParam(path: string, param: string, val: any): Promise<boolean> {
+    const res = await this.sendRequest<SetOpParamResponse>({
+      action: 'set_op_param',
+      path,
+      param,
+      val,
+    });
+    this.paramsCache.delete(path);
+    return res.success;
+  }
+
+  public async pulseOpParam(path: string, param: string): Promise<boolean> {
+    const res = await this.sendRequest<PulseOpParamResponse>({
+      action: 'pulse_op_param',
+      path,
+      param,
+    });
+    return res.success;
+  }
+
+  public async batchFetchDats(rootPath = '/'): Promise<BatchDatItem[]> {
+    const res = await this.sendRequest<BatchFetchDatsResponse>({
+      action: 'batch_fetch_dats',
+      rootPath,
+    }, 15000);
+    return res.items || [];
+  }
+
+  public async applyParamSnapshot(path: string, snapshot: Record<string, any>): Promise<number> {
+    const res = await this.sendRequest<ApplyParamSnapshotResponse>({
+      action: 'apply_param_snapshot',
+      path,
+      snapshot,
+    });
+    this.paramsCache.delete(path);
+    return res.appliedCount || 0;
   }
 
   public clearCache() {

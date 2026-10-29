@@ -11,6 +11,9 @@ import { ExecuteCodeManager } from './commands/executeCode';
 import { DatSyncManager } from './commands/syncDat';
 import { SetupPythonManager } from './commands/setupPython';
 import { ReplTerminalManager } from './commands/replTerminal';
+import { ParamInspectorProvider } from './providers/paramInspectorProvider';
+import { ParamSnapshotManager } from './commands/paramSnapshot';
+import { ExternalizeDatsManager } from './commands/externalizeDats';
 
 let statusBarItem: vscode.StatusBarItem;
 let runStatusBarItem: vscode.StatusBarItem;
@@ -31,6 +34,16 @@ export function activate(context: vscode.ExtensionContext) {
     showCollapseAll: true,
   });
   context.subscriptions.push(treeView);
+
+  // Register Parameter Inspector Webview View
+  const paramInspectorProvider = new ParamInspectorProvider(context.extensionUri);
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(
+      ParamInspectorProvider.viewType,
+      paramInspectorProvider,
+      { webviewOptions: { retainContextWhenHidden: true } }
+    )
+  );
 
   // Register Language Features (Python and GLSL)
   context.subscriptions.push(
@@ -279,6 +292,34 @@ export function activate(context: vscode.ExtensionContext) {
         content: template,
       });
       await vscode.window.showTextDocument(doc);
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('touchdesigner.inspectOp', (arg?: OpTreeItem | string) => {
+      const opPath = typeof arg === 'string' ? arg : (arg?.node?.path || '/project1');
+      paramInspectorProvider.inspectOp(opPath);
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('touchdesigner.externalizeDats', async (arg?: OpTreeItem | string) => {
+      const rootPath = typeof arg === 'string' ? arg : (arg?.node?.path || '/project1');
+      await ExternalizeDatsManager.externalize(rootPath, datSyncManager);
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('touchdesigner.saveParamSnapshot', async (arg?: OpTreeItem | string) => {
+      const opPath = typeof arg === 'string' ? arg : arg?.node?.path;
+      await ParamSnapshotManager.saveSnapshot(opPath);
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('touchdesigner.loadParamSnapshot', async (arg?: OpTreeItem | string) => {
+      const opPath = typeof arg === 'string' ? arg : arg?.node?.path;
+      await ParamSnapshotManager.loadSnapshot(opPath);
     })
   );
 

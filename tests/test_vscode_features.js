@@ -250,7 +250,7 @@ function runTests() {
 
     const pkg = JSON.parse(fs.readFileSync(path.join(WORKSPACE_ROOT, 'package.json'), 'utf8'));
 
-    assert.strictEqual(pkg.version, '0.4.0');
+    assert.strictEqual(pkg.version, '0.5.0');
     assert.strictEqual(pkg.publisher, 'MajaRoczek');
     assert.strictEqual(pkg.license, 'Apache-2.0');
 
@@ -269,12 +269,22 @@ function runTests() {
       'touchdesigner.exportBridgeScript',
       'touchdesigner.openDat',
       'touchdesigner.cookOp',
-      'touchdesigner.copyOpPath'
+      'touchdesigner.copyOpPath',
+      'touchdesigner.inspectOp',
+      'touchdesigner.externalizeDats',
+      'touchdesigner.saveParamSnapshot',
+      'touchdesigner.loadParamSnapshot'
     ];
 
     for (const cmd of expectedCommands) {
       assert.ok(commands.includes(cmd), `Missing contributed command: ${cmd}`);
     }
+
+    // Verify views
+    const views = pkg.contributes.views['touchdesigner-container'];
+    const viewIds = views.map(v => v.id);
+    assert.ok(viewIds.includes('touchdesigner-explorer'));
+    assert.ok(viewIds.includes('touchdesigner-params'));
 
     const configProps = pkg.contributes.configuration.properties;
     assert.ok(configProps['touchdesigner.serverHost']);
@@ -288,7 +298,7 @@ function runTests() {
     const editorTitleMenus = pkg.contributes.menus['editor/title'];
     assert.ok(editorTitleMenus.length >= 4);
 
-    console.log('   Passed: package.json manifest, 12 commands, 6 settings, and action menus verified.');
+    console.log(`   Passed: package.json manifest, ${expectedCommands.length} commands, 6 settings, and views verified.`);
     passed++;
   }
 
@@ -296,8 +306,10 @@ function runTests() {
   {
     console.log('6. Testing VSIX Package Archive Contents...');
 
-    const vsixPath = path.join(WORKSPACE_ROOT, 'touchdesigner-ide-0.4.0.vsix');
-    assert.ok(fs.existsSync(vsixPath), `VSIX file does not exist: ${vsixPath}`);
+    const vsixFiles = fs.readdirSync(WORKSPACE_ROOT).filter(f => f.startsWith('touchdesigner-ide-') && f.endsWith('.vsix')).sort();
+    assert.ok(vsixFiles.length > 0, 'No VSIX package found');
+    const vsixName = vsixFiles[vsixFiles.length - 1];
+    const vsixPath = path.join(WORKSPACE_ROOT, vsixName);
 
     const vsixBuffer = fs.readFileSync(vsixPath);
     assert.ok(vsixBuffer.length > 30000, 'VSIX file is smaller than expected');
@@ -322,7 +334,7 @@ function runTests() {
       );
     }
 
-    console.log(`   Passed: touchdesigner-ide-0.4.0.vsix (${(vsixBuffer.length / 1024).toFixed(1)} KB) contains all bundle files.`);
+    console.log(`   Passed: ${vsixName} (${(vsixBuffer.length / 1024).toFixed(1)} KB) contains all bundle files.`);
     passed++;
   }
 

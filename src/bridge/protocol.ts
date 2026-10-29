@@ -30,6 +30,10 @@ export interface OpParamInfo {
   defaultVal?: any;
   isCustom: boolean;
   readOnly: boolean;
+  min?: number;
+  max?: number;
+  normMin?: number;
+  normMax?: number;
   menuLabels?: string[];
   menuNames?: string[];
 }
@@ -119,6 +123,30 @@ export interface CookOpRequest extends BaseRequest {
   force?: boolean;
 }
 
+export interface SetOpParamRequest extends BaseRequest {
+  action: 'set_op_param';
+  path: string;
+  param: string;
+  val: any;
+}
+
+export interface PulseOpParamRequest extends BaseRequest {
+  action: 'pulse_op_param';
+  path: string;
+  param: string;
+}
+
+export interface BatchFetchDatsRequest extends BaseRequest {
+  action: 'batch_fetch_dats';
+  rootPath?: string;
+}
+
+export interface ApplyParamSnapshotRequest extends BaseRequest {
+  action: 'apply_param_snapshot';
+  path: string;
+  snapshot: Record<string, any>;
+}
+
 export type ClientRequest =
   | PingRequest
   | EvalRequest
@@ -128,7 +156,11 @@ export type ClientRequest =
   | GetOpParamsRequest
   | SyncDatRequest
   | FetchDatRequest
-  | CookOpRequest;
+  | CookOpRequest
+  | SetOpParamRequest
+  | PulseOpParamRequest
+  | BatchFetchDatsRequest
+  | ApplyParamSnapshotRequest;
 
 // Server -> Client Responses
 export interface BaseResponse {
@@ -206,6 +238,40 @@ export interface CookOpResponse extends BaseResponse {
   path: string;
 }
 
+export interface SetOpParamResponse extends BaseResponse {
+  action: 'set_op_param';
+  path: string;
+  param: string;
+  val: any;
+}
+
+export interface PulseOpParamResponse extends BaseResponse {
+  action: 'pulse_op_param';
+  path: string;
+  param: string;
+}
+
+export interface BatchDatItem {
+  path: string;
+  name: string;
+  type: string;
+  content: string;
+  isTable: boolean;
+}
+
+export interface BatchFetchDatsResponse extends BaseResponse {
+  action: 'batch_fetch_dats';
+  rootPath: string;
+  items: BatchDatItem[];
+}
+
+export interface ApplyParamSnapshotResponse extends BaseResponse {
+  action: 'apply_param_snapshot';
+  path: string;
+  appliedCount: number;
+  errors?: string[];
+}
+
 // Server -> Client Events
 export interface TextportEvent {
   event: 'textport';
@@ -229,5 +295,9 @@ export type ServerMessage =
   | SyncDatResponse
   | FetchDatResponse
   | CookOpResponse
+  | SetOpParamResponse
+  | PulseOpParamResponse
+  | BatchFetchDatsResponse
+  | ApplyParamSnapshotResponse
   | TextportEvent
   | OpTreeChangedEvent;

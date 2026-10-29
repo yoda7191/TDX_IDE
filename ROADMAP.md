@@ -4,9 +4,9 @@ This document outlines the planned development and milestones for the TouchDesig
 
 ---
 
-## Current Status (Version 0.4.0) — Completed
+## Current Status (Version 0.5.0) — Completed
 
-The core communication bridge, editing tools, automated release pipeline, and GLSL tools are fully functional:
+The core communication bridge, editing tools, automated release pipeline, GLSL live tools, and visual parameter inspection are fully functional:
 
 - **Live Communication Bridge**: Two-way WebSocket connection between VS Code and TouchDesigner.
 - **Node & Parameter Autocompletion**: Live suggestions for `op('...')` and `.par.` matching active nodes in TouchDesigner.
@@ -21,21 +21,14 @@ The core communication bridge, editing tools, automated release pipeline, and GL
 - **Real-Time GLSL Live Reload**: Automatically reloads and recompiles dependent GLSL TOPs, GLSL Multi TOPs, and GLSL MATs when saving shader files in VS Code.
 - **Shader Compile Error Highlighting**: Displays TouchDesigner GLSL compilation errors with red underline markers directly on the offending line in VS Code.
 - **Creative Shader Presets**: Built-in templates for raymarching SDFs, feedback trails, procedural FBM noise, chromatic aberration, and compute shaders.
+- **Visual Parameter Inspector**: Sidebar panel with live interactive sliders, toggles, pulse buttons, and dropdown menus for tweaking TouchDesigner nodes directly in VS Code.
+- **Batch DAT Externalizer**: One-click utility to extract all scripts, shaders, and tables from any component into your local workspace with live two-way sync.
+- **Parameter Snapshot & Presets**: Capture and restore operator parameter states to JSON presets with one click.
 - **Official Licensing & Links**: Apache 2.0 license and repository links configured for publisher `MajaRoczek`.
 
 ---
 
-## Phase 4: Workflow Tools & Parameter Inspection (Version 0.5.0) — Next Up
-
-Bring visual TouchDesigner controls directly into VS Code to reduce window switching:
-
-- **Visual Parameter Panel**: A sidebar tab in VS Code that renders live sliders, color pickers, and toggle buttons for any selected operator, allowing you to tweak values in real time without leaving your code.
-- **Batch DAT Externalizer**: A utility command to externalize all script DATs in a component into an organized local project folder with automatic two-way file synchronization.
-- **Multiple TouchDesigner Instances**: Support connecting to multiple running TouchDesigner instances simultaneously (for example, multi-machine setups or separate render/logic processes).
-
----
-
-## Phase 5: Visual Previews & Advanced Features (Version 1.0.0)
+## Phase 5: Visual Previews & Advanced Features (Version 1.0.0) — Next Up
 
 - **Live TOP Previews on Hover**: Hovering over any TOP operator in code shows a small live thumbnail image preview of its current texture buffer directly in the tooltip.
 - **CHOP Channel Inspection**: Quick graph visualizer in the sidebar showing real-time waveform data for monitored CHOP channels.

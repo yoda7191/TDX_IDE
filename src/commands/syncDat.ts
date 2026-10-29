@@ -22,6 +22,10 @@ export class DatSyncManager {
     );
   }
 
+  public registerSyncedFile(fileUri: vscode.Uri, opPath: string) {
+    this.syncedFiles.set(fileUri.toString(), opPath);
+  }
+
   /**
    * Ensures a DAT from TouchDesigner is synced to disk and returns its file Uri
    */

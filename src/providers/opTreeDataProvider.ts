@@ -13,8 +13,8 @@ export class OpTreeItem extends vscode.TreeItem {
     this.description = node.type;
     this.tooltip = new vscode.MarkdownString(
       `**${node.path}**\n\nFamily: ${node.family}\nType: ${node.type}${
-        node.error ? `\n\n❌ Error: ${node.error}` : ''
-      }${node.warning ? `\n\n⚠️ Warning: ${node.warning}` : ''}`
+        node.error ? `\n\nError: ${node.error}` : ''
+      }${node.warning ? `\n\nWarning: ${node.warning}` : ''}`
     );
 
     // Set icon based on OP family and error state
@@ -28,8 +28,20 @@ export class OpTreeItem extends vscode.TreeItem {
         title: 'Open DAT in Editor',
         arguments: [node.path],
       };
+    } else if (node.family === 'COMP') {
+      this.contextValue = 'touchdesigner.comp';
+      this.command = {
+        command: 'touchdesigner.inspectOp',
+        title: 'Inspect Parameters',
+        arguments: [node.path],
+      };
     } else {
       this.contextValue = 'touchdesigner.op';
+      this.command = {
+        command: 'touchdesigner.inspectOp',
+        title: 'Inspect Parameters',
+        arguments: [node.path],
+      };
     }
   }
 

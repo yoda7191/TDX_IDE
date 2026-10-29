@@ -2,7 +2,7 @@
   "name": "touchdesigner-ide",
   "displayName": "TouchDesigner IDE",
   "description": "Interactive development environment for TouchDesigner: live autocompletion, remote Python execution, OP tree explorer, and Textport bridge.",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "license": "Apache-2.0",
   "author": "Maja Roczek",
   "publisher": "MajaRoczek",
@@ -24,7 +24,8 @@
     "onLanguage:python",
     "onLanguage:glsl",
     "onCommand:touchdesigner.connect",
-    "onView:touchdesigner-explorer"
+    "onView:touchdesigner-explorer",
+    "onView:touchdesigner-params"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -111,6 +112,30 @@
         "title": "Copy Operator Reference to Clipboard",
         "category": "TouchDesigner",
         "icon": "$(copy)"
+      },
+      {
+        "command": "touchdesigner.inspectOp",
+        "title": "Inspect Operator Parameters",
+        "category": "TouchDesigner",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "touchdesigner.externalizeDats",
+        "title": "Externalize All DATs in Component",
+        "category": "TouchDesigner",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "touchdesigner.saveParamSnapshot",
+        "title": "Save Parameter Snapshot",
+        "category": "TouchDesigner",
+        "icon": "$(archive)"
+      },
+      {
+        "command": "touchdesigner.loadParamSnapshot",
+        "title": "Load Parameter Snapshot",
+        "category": "TouchDesigner",
+        "icon": "$(history)"
       }
     ],
     "keybindings": [
@@ -143,6 +168,12 @@
         {
           "id": "touchdesigner-explorer",
           "name": "Operator Tree",
+          "contextualTitle": "TouchDesigner"
+        },
+        {
+          "id": "touchdesigner-params",
+          "name": "Parameter Inspector",
+          "type": "webview",
           "contextualTitle": "TouchDesigner"
         }
       ]
@@ -204,19 +235,39 @@
       ],
       "view/item/context": [
         {
+          "command": "touchdesigner.inspectOp",
+          "when": "view == touchdesigner-explorer",
+          "group": "inline@1"
+        },
+        {
           "command": "touchdesigner.openDat",
           "when": "view == touchdesigner-explorer && viewItem == touchdesigner.dat",
-          "group": "inline"
+          "group": "inline@2"
+        },
+        {
+          "command": "touchdesigner.externalizeDats",
+          "when": "view == touchdesigner-explorer && viewItem == touchdesigner.comp",
+          "group": "touchdesigner@1"
+        },
+        {
+          "command": "touchdesigner.saveParamSnapshot",
+          "when": "view == touchdesigner-explorer",
+          "group": "touchdesigner@2"
+        },
+        {
+          "command": "touchdesigner.loadParamSnapshot",
+          "when": "view == touchdesigner-explorer",
+          "group": "touchdesigner@3"
         },
         {
           "command": "touchdesigner.cookOp",
           "when": "view == touchdesigner-explorer",
-          "group": "touchdesigner@1"
+          "group": "touchdesigner@4"
         },
         {
           "command": "touchdesigner.copyOpPath",
           "when": "view == touchdesigner-explorer",
-          "group": "touchdesigner@2"
+          "group": "touchdesigner@5"
         }
       ],
       "editor/context": [
